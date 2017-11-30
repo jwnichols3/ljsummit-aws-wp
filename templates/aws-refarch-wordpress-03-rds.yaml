@@ -97,14 +97,12 @@ Conditions:
     ]
 
 Resources:
-
-  DatabaseCluster:
-    Type: AWS::RDS::DBCluster
+    Type: AWS::RDS::DBInstance
     Properties:
       BackupRetentionPeriod: 30
       DatabaseName: !Ref DatabaseName
       DBSubnetGroupName: !Ref DataSubnetGroup
-      Engine: aurora
+      Engine: MariaDB
       MasterUsername: !Ref DatabaseMasterUsername
       MasterUserPassword: !Ref DatabaseMasterPassword
       Port: 3306
@@ -113,32 +111,7 @@ Resources:
           Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
       VpcSecurityGroupIds:
       - !Ref DatabaseSecurityGroup
-  DatabaseInstance0:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    Properties:
-      AllowMajorVersionUpgrade: false
-      AutoMinorVersionUpgrade: true
-      DBClusterIdentifier: !Ref DatabaseCluster
-      DBInstanceClass: !Ref DatabaseInstanceType
-      DBSubnetGroupName: !Ref DataSubnetGroup
-      Engine: aurora
-      Tags:
-        - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
-  DatabaseInstance1:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    Properties:
-      AllowMajorVersionUpgrade: false
-      AutoMinorVersionUpgrade: true
-      DBClusterIdentifier: !Ref DatabaseCluster
-      DBInstanceClass: !Ref DatabaseInstanceType
-      DBSubnetGroupName: !Ref DataSubnetGroup
-      Engine: aurora
-      Tags:
-        - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+
   DataSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
