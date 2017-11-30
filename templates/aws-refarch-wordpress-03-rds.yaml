@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates RDS Aurora database cluster
+Description: Reference Architecture to host WordPress on AWS - Creates RDS MariaDB database cluster
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -45,9 +45,9 @@ Parameters:
       - db.r3.xlarge
       - db.r3.2xlarge
       - db.r3.4xlarge
-      - db.r3.8xlarge    
+      - db.r3.8xlarge
     ConstraintDescription: Must be a valid RDS instance class.
-    Default: db.t2.medium
+    Default: db.t2.small
     Description: The Amazon RDS database instance class.
     Type: String
   DatabaseMasterUsername:
@@ -59,7 +59,7 @@ Parameters:
     Type: String
   DatabaseMasterPassword:
     AllowedPattern: ^([a-z0-9A-Z`~!#$%^&*()_+,\\-])*$
-    ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-    
+    ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-
     Description: The Amazon RDS master password.
     MaxLength: 41
     MinLength: 8
@@ -139,4 +139,3 @@ Outputs:
     Value: !Ref DataSubnetGroup
   DatabaseClusterEndpointAddress:
     Value: !GetAtt DatabaseCluster.Endpoint.Address
-
