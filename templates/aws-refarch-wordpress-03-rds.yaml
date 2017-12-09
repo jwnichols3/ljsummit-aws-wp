@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates RDS MariaDB database cluster
+Description: Reference Architecture to host WordPress on AWS - Creates RDS Aurora database cluster
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -47,7 +47,7 @@ Parameters:
       - db.r3.4xlarge
       - db.r3.8xlarge
     ConstraintDescription: Must be a valid RDS instance class.
-    Default: db.t2.small
+    Default: db.t2.medium
     Description: The Amazon RDS database instance class.
     Type: String
   DatabaseMasterUsername:
@@ -139,3 +139,295 @@ Outputs:
     Value: !Ref DataSubnetGroup
   DatabaseClusterEndpointAddress:
     Value: !GetAtt DatabaseCluster.Endpoint.Address
+
+
+
+
+### Multiple attempts to make work with just RDS (non-Aurora
+# # ---
+# # AWSTemplateFormatVersion: 2010-09-09
+# #
+# # Description: Reference Architecture to host WordPress on AWS - Creates RDS MariaDB database cluster
+# #
+# # Metadata:
+# #   AWS::CloudFormation::Interface:
+# #     ParameterGroups:
+# #     - Label:
+# #         default: Database Parameters
+# #       Parameters:
+# #         - DatabaseInstanceType
+# #         - DatabaseMasterUsername
+# #         - DatabaseMasterPassword
+# #         - DatabaseName
+# #         - DatabaseSecurityGroup
+# #         - DataSubnet0
+# #         - DataSubnet1
+# #         - DataSubnet2
+# #     ParameterLabels:
+# #       DatabaseInstanceType:
+# #         default: DB Instance Class
+# #       DatabaseMasterUsername:
+# #         default: DB Master Username
+# #       DatabaseMasterPassword:
+# #         default: DB Master Password
+# #       DatabaseName:
+# #         default: DB Name
+# #       DatabaseSecurityGroup:
+# #         default: DB Security Group
+# #       DataSubnet0:
+# #         default: Data Subnet for AZ 0
+# #       DataSubnet1:
+# #         default: Data Subnet for AZ 1
+# #       DataSubnet2:
+# #         default: Data Subnet for AZ 2
+# #
+# # Parameters:
+# #
+# #   DatabaseInstanceType:
+# #     AllowedValues:
+# #       - db.t2.small
+# #       - db.t2.medium
+# #       - db.r3.large
+# #       - db.r3.xlarge
+# #       - db.r3.2xlarge
+# #       - db.r3.4xlarge
+# #       - db.r3.8xlarge
+# #     ConstraintDescription: Must be a valid RDS instance class.
+# #     Default: db.t2.small
+# #     Description: The Amazon RDS database instance class.
+# #     Type: String
+# #   DatabaseMasterUsername:
+# #     AllowedPattern: ^([a-zA-Z0-9]*)$
+# #     Description: The Amazon RDS master username.
+# #     ConstraintDescription: Must contain only alphanumeric characters and be at least 8 characters.
+# #     MaxLength: 16
+# #     MinLength: 1
+# #     Type: String
+# #   DatabaseMasterPassword:
+# #     AllowedPattern: ^([a-z0-9A-Z`~!#$%^&*()_+,\\-])*$
+# #     ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-
+# #     Description: The Amazon RDS master password.
+# #     MaxLength: 41
+# #     MinLength: 8
+# #     NoEcho: true
+# #     Type: String
+# #   DatabaseName:
+# #     AllowedPattern: ^([a-zA-Z0-9]*)$
+# #     Description: The Amazon RDS master database name.
+# #     Type: String
+# #   DatabaseSecurityGroup:
+# #     Description: Select the database security group.
+# #     Type: AWS::EC2::SecurityGroup::Id
+# #   DataSubnet0:
+# #     Description: Select an existing database subnet for AZ 0.
+# #     Type: AWS::EC2::Subnet::Id
+# #   DataSubnet1:
+# #     Description: Select an existing database subnet for AZ 1.
+# #     Type: AWS::EC2::Subnet::Id
+# #   DataSubnet2:
+# #     Description: Select an existing database subnet for AZ 2.
+# #     Type: AWS::EC2::Subnet::Id
+# #
+# # Conditions:
+# #
+# #   MoreThan2AZ:
+# #     !Or [
+# #       !Equals [ !Ref 'AWS::Region', us-east-1 ],
+# #       !Equals [ !Ref 'AWS::Region', us-east-2 ],
+# #       !Equals [ !Ref 'AWS::Region', us-west-2 ],
+# #       !Equals [ !Ref 'AWS::Region', eu-central-1 ],
+# #       !Equals [ !Ref 'AWS::Region', eu-west-1 ],
+# #       !Equals [ !Ref 'AWS::Region', sa-east-1 ],
+# #       !Equals [ !Ref 'AWS::Region', ap-northeast-1 ],
+# #       !Equals [ !Ref 'AWS::Region', ap-southeast-2 ]
+# #     ]
+# #
+# # Resources:
+# #     Type: AWS::RDS::DBInstance
+# #     Properties:
+# #       BackupRetentionPeriod: 30
+# #       DatabaseName: !Ref DatabaseName
+# #       DBSubnetGroupName: !Ref DataSubnetGroup
+# #       Engine: MariaDB
+# #       MasterUsername: !Ref DatabaseMasterUsername
+# #       MasterUserPassword: !Ref DatabaseMasterPassword
+# #       Port: 3306
+# #       Tags:
+# #         - Key: Name
+# #           Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+# #       VpcSecurityGroupIds:
+# #       - !Ref DatabaseSecurityGroup
+# #
+# #   DataSubnetGroup:
+# #     Type: AWS::RDS::DBSubnetGroup
+# #     Properties:
+# #       DBSubnetGroupDescription: RDS Database Subnet Group for WordPress
+# #       SubnetIds:
+# #         !If [
+# #           MoreThan2AZ,
+# #           [ !Ref DataSubnet0, !Ref DataSubnet1, !Ref DataSubnet2 ],
+# #           [ !Ref DataSubnet0, !Ref DataSubnet1 ]
+# #         ]
+# #       Tags:
+# #         - Key: Name
+# #           Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+# #
+# # Outputs:
+# # #  DatabaseCluster:
+# # #    Value: !Ref DatabaseCluster
+# #   DatabaseName:
+# #     Value: !Ref DatabaseName
+# # #  DatabaseInstance0:
+# # #    Value: !Ref DatabaseInstance0
+# # #  DatabaseInstance1:
+# # #    Value: !Ref DatabaseInstance1
+# #   DataSubnetGroup:
+# #     Value: !Ref DataSubnetGroup
+# #   DatabaseClusterEndpointAddress:
+# #     Value: !GetAtt DatabaseName.Endpoint.Address
+# # #  DatabaseClusterEndpointAddress:
+# # #    Value: !GetAtt DatabaseCluster.Endpoint.Address
+#
+#
+# AWSTemplateFormatVersion: '2010-09-09'
+# Metadata:
+#   AWS::CloudFormation::Interface:
+#     ParameterGroups:
+#     - Label:
+#         default: Database Parameters
+#       Parameters:
+#         - DatabaseInstanceType
+#         - DatabaseMasterUsername
+#         - DatabaseMasterPassword
+#         - DatabaseName
+#         - DatabaseSecurityGroup
+#         - DataSubnet0
+#         - DataSubnet1
+#         - DataSubnet2
+#     ParameterLabels:
+#       DatabaseInstanceType:
+#         default: DB Instance Class
+#       DatabaseMasterUsername:
+#         default: DB Master Username
+#       DatabaseMasterPassword:
+#         default: DB Master Password
+#       DatabaseName:
+#         default: DB Name
+#       DatabaseSecurityGroup:
+#         default: DB Security Group
+#       DataSubnet0:
+#         default: Data Subnet for AZ 0
+#       DataSubnet1:
+#         default: Data Subnet for AZ 1
+#       DataSubnet2:
+#         default: Data Subnet for AZ 2
+#
+# Parameters:
+#   DatabaseName:
+#     Description: The database name
+#     Type: String
+#     MinLength: '1'
+#     MaxLength: '64'
+#     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+#     ConstraintDescription: must begin with a letter and contain only alphanumeric
+#       characters.
+#   DatabaseMasterUsername:
+#     NoEcho: 'true'
+#     Description: The database admin account username
+#     Type: String
+#     MinLength: '1'
+#     MaxLength: '16'
+#     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+#     ConstraintDescription: must begin with a letter and contain only alphanumeric
+#       characters.
+#   DatabaseMasterPassword:
+#     NoEcho: 'true'
+#     Description: The database admin account password
+#     Type: String
+#     MinLength: '1'
+#     MaxLength: '41'
+#     AllowedPattern: '[a-zA-Z0-9]+'
+#     ConstraintDescription: must contain only alphanumeric characters.
+#   DBAllocatedStorage:
+#     Default: '5'
+#     Description: The size of the database (Gb)
+#     Type: Number
+#     MinValue: '5'
+#     MaxValue: '1024'
+#     ConstraintDescription: must be between 5 and 1024Gb.
+#   DatabaseInstanceType:
+#     Description: The database instance type
+#     Type: String
+#     Default: db.t2.small
+#     AllowedValues: [db.t1.micro, db.m1.small, db.m1.medium, db.m1.large, db.m1.xlarge,
+#       db.m2.xlarge, db.m2.2xlarge, db.m2.4xlarge, db.m3.medium, db.m3.large, db.m3.xlarge,
+#       db.m3.2xlarge, db.m4.large, db.m4.xlarge, db.m4.2xlarge, db.m4.4xlarge, db.m4.10xlarge,
+#       db.r3.large, db.r3.xlarge, db.r3.2xlarge, db.r3.4xlarge, db.r3.8xlarge, db.m2.xlarge,
+#       db.m2.2xlarge, db.m2.4xlarge, db.cr1.8xlarge, db.t2.micro, db.t2.small, db.t2.medium,
+#       db.t2.large]
+#     ConstraintDescription: must select a valid database instance type.
+#   # DatabaseSecurityGroup:
+#   #   Description: The EC2 security group that contains instances that need access to
+#   #     the database
+#   #   Default: default
+#   #   Type: String
+#   #   AllowedPattern: '[a-zA-Z0-9\-]+'
+#   #   ConstraintDescription: must be a valid security group name.
+#   MultiAZ:
+#     Description: Multi-AZ master database
+#     Type: String
+#     Default: 'false'
+#     AllowedValues: ['true', 'false']
+#     ConstraintDescription: must be true or false.
+# Conditions:
+#   Is-EC2-VPC: !Or [!Equals [!Ref 'AWS::Region', eu-central-1], !Equals [!Ref 'AWS::Region',
+#       cn-north-1]]
+#   Is-EC2-Classic: !Not [{Condition: Is-EC2-VPC}]
+#
+# Resources:
+#   DatabaseSecurityGroup:
+#     Type: AWS::EC2::SecurityGroup
+#     Properties:
+#       GroupDescription: Open database for access
+#       SecurityGroupIngress:
+#       - IpProtocol: tcp
+#         FromPort: '3306'
+#         ToPort: '3306'
+# #        SourceSecurityGroupName: !Ref 'DatabaseSecurityGroup'
+#   MasterDB:
+#     Type: AWS::RDS::DBInstance
+#     Properties:
+#       DatabaseName: !Ref 'DatabaseName'
+#       AllocatedStorage: !Ref 'DBAllocatedStorage'
+#       DatabaseInstanceType: !Ref 'DatabaseInstanceType'
+#       Engine: MySQL
+#       MasterUsername: !Ref 'DatabaseMasterUsername'
+#       MasterUserPassword: !Ref 'DatabaseMasterPassword'
+#       MultiAZ: !Ref 'MultiAZ'
+#       Tags:
+#       - Key: Name
+#         Value: Master Database
+#     DeletionPolicy: Snapshot
+#   # ReplicaDB:
+#   #   Type: AWS::RDS::DBInstance
+#   #   Properties:
+#   #     SourceDBInstanceIdentifier: !Ref 'MasterDB'
+#   #     DatabaseInstanceType: !Ref 'DatabaseInstanceType'
+#   #     Tags:
+#   #     - Key: Name
+#   #       Value: Read Replica Database
+# Outputs:
+#   DatabaseName:
+#     Value: !Ref DatabaseName
+# #  DataSubnetGroup:
+# #    Value: !Ref DataSubnetGroup
+# #  DatabaseClusterEndpointAddress:
+# #    Value: !GetAtt DatabaseName.Endpoint.Address
+# #  MasterJDBCConnectionString:
+#   #   Description: JDBC connection string for the master database
+#   #   Value: !Join ['', ['jdbc:mysql://', !GetAtt [MasterDB, Endpoint.Address], ':',
+#   #       !GetAtt [MasterDB, Endpoint.Port], /, !Ref 'DatabaseName']]
+#   # ReplicaJDBCConnectionString:
+#   #   Description: JDBC connection string for the replica database
+#   #   Value: !Join ['', ['jdbc:mysql://', !GetAtt [ReplicaDB, Endpoint.Address], ':',
+#   #       !GetAtt [ReplicaDB, Endpoint.Port], /, !Ref 'DatabaseName']]
